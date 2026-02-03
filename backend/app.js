@@ -9,15 +9,20 @@ import connectToDatabase from "./database/mongodb.js"
 import errorMiddleware from "./middlewares/error.middlewar.js"
 import cookieParser from "cookie-parser"
 import arcjetMiddleware from "./middlewares/arcjet.middleware.js"
-
+import path from "path"
+import { fileURLToPath } from 'url';
 const app = express()
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // CORS - Allow React frontend to connect
 //asd
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'], // React dev servers
-  credentials: true  // Important for cookies/auth
-}))
+if (process.env.NODE_ENV !== "production") {
+  app.use(cors({
+    origin: ['http://localhost:3000', 'http://localhost:5173'], // React dev servers
+    credentials: true  // Important for cookies/auth
+  }))
+}
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
@@ -27,6 +32,19 @@ app.use(arcjetMiddleware)
 app.use("/api/v1/auth", authRouter)
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/subscriptions", subscriptionRouter)
+
+// Serve static files from the frontend/dist folder
+app.use(express.static(path.join(__dirname, "../frontend/dist")))
+
+if (process.env.NODE_ENV === "production") {
+  app.get("*", (req, res) => {
+    // If the request is for an API route that doesn't exist, don't serve index.html
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ message: 'API endpoint not found' });
+    }
+    res.sendFile(path.resolve(__dirname, "../frontend", "dist", "index.html"))
+  })
+}
 
 app.use(errorMiddleware)
 
