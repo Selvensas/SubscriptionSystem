@@ -169,7 +169,7 @@ const Home = () => {
                             onClick={() => setShowUpcomingOnly(!showUpcomingOnly)}
                             style={{ marginRight: '8px' }}
                         >
-                            ⚡ Upcoming
+                            ⏳ Upcoming
                         </button>
 
                         <button
